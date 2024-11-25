@@ -16,11 +16,11 @@ ffi.cdef[[
 void *bsLoad(const char *);
 void bsSetCPage(void *, int);
 void bsSetNPage(void *, int);
-void bsSetOpenTime(void *bstate, time_t);
+void bsSetOpenTime(void *, time_t);
 int bsClose(void *);
 int bsSave(void *);
 ]]
-local pb_bookstate = ffi.load("/usr/lib/libbookstate.so")
+local pbBookState = ffi.load("libbookstate.so")
 
 local PocketbookSync = WidgetContainer:extend{
     name = "pocketbooksync",
@@ -86,16 +86,21 @@ function PocketbookSync:doSync(data)
     if not data then
         return
     end
-    local handle = pb_bookstate.bsLoad(data.filepath)
-    if not handle then
+
+    if not pbBookState then
         return
     end
 
-    pb_bookstate.bsSetCPage(handle, data.page)
-    pb_bookstate.bsSetNPage(handle, data.totalPages)
-    pb_bookstate.bsSetOpenTime(handle, data.time)
-    pb_bookstate.bsSave(handle)
-    pb_bookstate.bsClose(handle)
+    local bookHandle = pbBookState.bsLoad(data.filepath)
+    if not bookHandle then
+        return
+    end
+
+    pbBookState.bsSetCPage(bookHandle, data.page)
+    pbBookState.bsSetNPage(bookHandle, data.totalPages)
+    pbBookState.bsSetOpenTime(bookHandle, data.time)
+    pbBookState.bsSave(bookHandle)
+    pbBookState.bsClose(bookHandle)
 end
 
 function PocketbookSync:onPageUpdate()
